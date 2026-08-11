@@ -3,6 +3,7 @@ package com.example.biblioteca.ui.registro
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -31,6 +32,7 @@ class RegistroFragment : Fragment(R.layout.fragment_registro) {
 
         viewModel.registroExitoso.observe(viewLifecycleOwner) { success ->
             if (success) {
+                Toast.makeText(requireContext(), "Usuario registrado con éxito", Toast.LENGTH_SHORT).show()
                 findNavController().popBackStack()
             }
         }

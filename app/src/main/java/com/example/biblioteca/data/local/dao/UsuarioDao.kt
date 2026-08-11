@@ -8,7 +8,7 @@ import com.example.biblioteca.data.local.entities.Usuario
 
 @Dao
 interface UsuarioDao {
-    @Insert(onConflict = OnConflictStrategy.ABORT)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun registrar(usuario: Usuario): Long
 
     @Query("SELECT * FROM usuarios WHERE correo = :correo AND password = :password LIMIT 1")

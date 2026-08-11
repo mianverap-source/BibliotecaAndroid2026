@@ -23,9 +23,14 @@ class DetalleLibroFragment : Fragment(R.layout.fragment_detalle_libro) {
         val tvAutor = view.findViewById<TextView>(R.id.tvDetalleAutor)
         val tvDescripcion = view.findViewById<TextView>(R.id.tvDetalleDescripcion)
         val progressBar = view.findViewById<ProgressBar>(R.id.pbDetalleLoading)
-        val btnPrestamo = view.findViewById<android.widget.Button>(R.id.btnSolicitarPrestamo)
+        val btnPrestamo = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSolicitarPrestamo)
+        
+        val ivTipoIcon = view.findViewById<ImageView>(R.id.ivTipoIcon)
+        val tvTipoRecurso = view.findViewById<TextView>(R.id.tvTipoRecurso)
+        val tvUbicacion = view.findViewById<TextView>(R.id.tvDetalleUbicacion)
+        val tvCopias = view.findViewById<TextView>(R.id.tvDetalleCopias)
 
-        // Obtener datos básicos del Bundle (pasados desde el catálogo)
+        // Obtener datos básicos del Bundle
         val workId = arguments?.getString("workId") ?: ""
         val titulo = arguments?.getString("titulo") ?: ""
         val autor = arguments?.getString("autor") ?: ""
@@ -38,8 +43,38 @@ class DetalleLibroFragment : Fragment(R.layout.fragment_detalle_libro) {
             error(android.R.drawable.stat_notify_error)
         }
 
+        viewModel.simulatedInfo.observe(viewLifecycleOwner) { info ->
+            if (info.esDigital) {
+                ivTipoIcon.setImageResource(android.R.drawable.ic_menu_save)
+                tvTipoRecurso.text = "Recurso Digital"
+                tvUbicacion.text = "Disponible para descarga inmediata"
+                tvCopias.visibility = View.GONE
+                btnPrestamo.text = "Descargar PDF"
+                btnPrestamo.setIconResource(android.R.drawable.ic_menu_save)
+            } else {
+                ivTipoIcon.setImageResource(android.R.drawable.ic_menu_agenda)
+                tvTipoRecurso.text = "Libro Físico"
+                tvUbicacion.text = "Ubicación: ${info.ubicacion}"
+                tvCopias.text = "Disponibilidad: ${info.copiasDisponibles} de ${info.copiasTotales} copias"
+                tvCopias.visibility = View.VISIBLE
+                btnPrestamo.text = "Solicitar Préstamo Físico"
+                btnPrestamo.setIconResource(android.R.drawable.ic_input_add)
+                
+                if (info.copiasDisponibles == 0) {
+                    btnPrestamo.isEnabled = false
+                    btnPrestamo.text = "Sin copias disponibles"
+                }
+            }
+        }
+
         btnPrestamo.setOnClickListener {
-            viewModel.solicitarPrestamo(titulo, autor)
+            viewModel.simulatedInfo.value?.let { info ->
+                if (info.esDigital) {
+                    Toast.makeText(requireContext(), "Iniciando descarga de: $titulo...", Toast.LENGTH_SHORT).show()
+                } else {
+                    viewModel.solicitarPrestamo(titulo, autor)
+                }
+            }
         }
 
         viewModel.detalle.observe(viewLifecycleOwner) { detalle ->
@@ -48,9 +83,9 @@ class DetalleLibroFragment : Fragment(R.layout.fragment_detalle_libro) {
 
         viewModel.prestamoExitoso.observe(viewLifecycleOwner) { success ->
             if (success) {
-                Toast.makeText(requireContext(), "Libro prestado con éxito", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Libro reservado con éxito", Toast.LENGTH_SHORT).show()
                 btnPrestamo.isEnabled = false
-                btnPrestamo.text = "Prestado"
+                btnPrestamo.text = "Reservado (Retirar en ventanilla)"
             }
         }
 

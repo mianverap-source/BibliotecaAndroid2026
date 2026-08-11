@@ -30,3 +30,10 @@ data class WorkDetailResponse(
         }
     }
 }
+
+data class SimulatedLibraryInfo(
+    val esDigital: Boolean,
+    val ubicacion: String? = null,
+    val copiasTotales: Int = 0,
+    val copiasDisponibles: Int = 0
+)

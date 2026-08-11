@@ -1,22 +1,44 @@
 package com.example.biblioteca.ui.perfil
 
 import android.os.Bundle
+import android.content.Intent
+import android.net.Uri
 import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
+import coil.transform.CircleCropTransformation
 import com.example.biblioteca.R
 
 class PerfilFragment : Fragment(R.layout.fragment_perfil) {
 
     private val viewModel: PerfilViewModel by viewModels()
 
+    private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            // Intentamos obtener permisos persistentes si es posible
+            try {
+                requireContext().contentResolver.takePersistableUriPermission(
+                    it, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (e: Exception) {
+                // Manejar error de permisos si no es un DocumentProvider
+            }
+            viewModel.actualizarFoto(it.toString())
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val ivFoto = view.findViewById<ImageView>(R.id.ivPerfilFoto)
+        val fabFoto = view.findViewById<View>(R.id.fabCambiarFoto)
         val tvNombre = view.findViewById<TextView>(R.id.tvNombrePerfil)
         val tvCorreo = view.findViewById<TextView>(R.id.tvCorreoPerfil)
         val tvCedula = view.findViewById<TextView>(R.id.tvCedulaPerfil)
@@ -27,9 +49,15 @@ class PerfilFragment : Fragment(R.layout.fragment_perfil) {
         val btnCerrarSesion = view.findViewById<View>(R.id.btnCerrarSesion)
         val rvPrestamos = view.findViewById<RecyclerView>(R.id.rvMisPrestamos)
 
-        val adapter = PrestamoAdapter(emptyList())
+        val adapter = PrestamoAdapter(emptyList()) { libro ->
+            viewModel.devolverLibro(libro)
+        }
         rvPrestamos.layoutManager = LinearLayoutManager(requireContext())
         rvPrestamos.adapter = adapter
+
+        fabFoto.setOnClickListener {
+            pickImage.launch("image/*")
+        }
 
         viewModel.usuario.observe(viewLifecycleOwner) { user ->
             if (user != null) {
@@ -40,6 +68,12 @@ class PerfilFragment : Fragment(R.layout.fragment_perfil) {
                 tvTelefono.text = "Celular: ${user.telefono}"
                 tvDireccion.text = "Dirección: ${user.direccion}"
                 tvAnio.text = "Año de ingreso: ${user.anioIngreso}"
+
+                if (user.fotoUri != null) {
+                    ivFoto.load(user.fotoUri) {
+                        transformations(CircleCropTransformation())
+                    }
+                }
             }
         }
 

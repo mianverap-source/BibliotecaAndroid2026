@@ -1,40 +1,45 @@
-# Informe de Proyecto: Aplicación Móvil "Biblioteca Digital"
+# Informe de Proyecto: Sistema de Gestión de Biblioteca Universitaria "Híbrida"
 
-Este documento explica el proceso de desarrollo, la estructura y las tecnologías utilizadas para crear esta aplicación de gestión de biblioteca.
+Este documento detalla el desarrollo de una solución móvil avanzada para la gestión de recursos bibliográficos tanto físicos como digitales.
 
-## 1. Introducción
-El objetivo del proyecto fue desarrollar una aplicación funcional para Android que permita a los estudiantes registrarse, buscar libros en una base de datos global y gestionar sus préstamos personales de forma local.
+## 1. Concepto del Proyecto
+La aplicación ha sido diseñada para simular un entorno real de biblioteca universitaria, donde los estudiantes no solo consultan un catálogo, sino que interactúan con el inventario físico del campus y acceden a recursos digitales.
 
-## 2. Estructura y Navegación
-La aplicación consta de **5 ventanas (Fragmentos)** principales, organizadas en un flujo lógico de usuario:
+## 2. Navegación y Experiencia de Usuario
+Se implementó un flujo moderno basado en **Material 3**:
+*   **Navigation Drawer**: Menú lateral para acceso rápido a Perfil y Catálogo.
+*   **Filtros Inteligentes**: Uso de **Chips** en el catálogo para filtrar libros por categorías educativas (Matemáticas, Programación, etc.).
+*   **Confirmación de Procesos**: Retroalimentación visual mediante Toasts al registrarse o solicitar préstamos.
 
-1.  **Login**: Pantalla de acceso que valida las credenciales y mantiene la sesión abierta.
-2.  **Registro**: Formulario completo para nuevos usuarios con validación de datos (Nombre, Cédula, Correo, Celular, Institución, etc.).
-3.  **Catálogo**: Pantalla principal con una barra de búsqueda para encontrar libros en tiempo real.
-4.  **Detalle del Libro**: Muestra la información específica y la descripción completa del libro seleccionado.
-5.  **Perfil**: Ficha del usuario donde se muestran sus datos y la lista de libros que tiene prestados.
+## 3. Gestión de Recursos (Físico vs Digital)
+Una de las innovaciones del proyecto es la lógica de diferenciación de recursos:
 
-## 3. Base de Datos Local
-Para la persistencia de datos, implementé **Room Database (SQLite)**. El diseño se basa en dos entidades principales con una relación de 1 a N:
+### Recursos Digitales
+*   **Acceso Directo**: Los libros marcados como digitales permiten la **descarga inmediata** en formato PDF (simulado).
+*   **Iconografía**: Identificados con un icono de nube.
 
-*   **Tabla Usuarios**: Almacena toda la información del perfil y la contraseña encriptada.
-*   **Tabla Libros**: Registra los libros que cada usuario decide prestar, vinculándolos mediante una clave foránea (`usuarioId`).
+### Recursos Físicos
+*   **Ubicación Real**: Muestra el **Piso, Módulo y Estante** donde se encuentra el ejemplar dentro de la biblioteca.
+*   **Control de Inventario**: Muestra el número de copias totales y cuántas están disponibles para préstamo.
+*   **Reserva**: Si hay stock, el estudiante puede "Reservar" el libro para retirarlo en ventanilla.
 
-### Diagrama Lógico
-*   **Usuario** (1) ---- (N) **Libros Prestados**
+## 4. Diseño de Base de Datos (Relación 1 a N)
+Para la persistencia local se utilizó **Room Database** con una arquitectura de relación de uno a muchos.
 
-## 4. Integración de API Externa
-Para no depender de una base de datos estática, integré la API REST de **Open Library**. 
-*   **Retrofit**: Utilizado para realizar las peticiones HTTP de forma eficiente.
-*   **Coil**: Librería usada para cargar y mostrar las portadas de los libros directamente desde los servidores de Open Library.
-*   **Funcionalidad**: Permite buscar cualquier libro por título o autor y obtener su descripción completa al instante.
+### Estructura de Tablas
+1. **Tabla `usuarios`**: Almacena el perfil del estudiante, incluyendo la ruta de su foto de perfil (`fotoUri`).
+2. **Tabla `libros`**: Gestiona los préstamos. Cada registro está vinculado a un usuario mediante `usuarioId`. Incluye campos para la fecha de préstamo y el estado de devolución (`isDevuelto`).
 
-## 5. Pasos del Desarrollo
-1.  **Diseño de UI**: Creación de los layouts en XML usando Material Design.
-2.  **Configuración de Room**: Definición de Entidades y DAOs para el manejo de datos locales.
-3.  **Capa de Red**: Implementación de Retrofit para conectar con Open Library.
-4.  **Arquitectura MVVM**: Separación de la lógica en ViewModels para que la app sea escalable y fácil de mantener.
-5.  **Sesión**: Uso de SharedPreferences para que el usuario no tenga que loguearse cada vez que abre la app.
+### Diccionario Técnico
+*   **Clave Primaria (PK)**: `id` en ambas tablas.
+*   **Clave Foránea (FK)**: `usuarioId` en la tabla libros, que apunta a `usuarios.id`.
+*   **Restricción**: Se configuró un borrado en cascada parcial (`SET_NULL`) para mantener la integridad de los datos.
+
+## 5. Tecnologías y Arquitectura
+*   **Base de Datos (Room)**: Gestión local de perfiles de usuario, fotos y estado de los libros prestados (Versión 2 con migración).
+*   **Red (Retrofit & Open Library)**: Sincronización con una base de datos global de libros en tiempo real.
+*   **Imágenes (Coil)**: Carga eficiente de portadas y fotos de perfil desde la galería o internet.
+*   **Arquitectura MVVM**: Lógica desacoplada para facilitar la escalabilidad del sistema.
 
 ## 6. Conclusión
-La aplicación es totalmente funcional, permitiendo un flujo completo desde el registro de un nuevo estudiante hasta la gestión de sus propios préstamos de libros, todo apoyado en una base de datos global.
+El sistema resultante es una herramienta integral que demuestra la capacidad de gestionar datos complejos y procesos de negocio reales de una institución educativa, integrando APIs externas con persistencia local robusta.

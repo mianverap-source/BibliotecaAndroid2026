@@ -11,6 +11,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.biblioteca.R
+import com.google.android.material.chip.ChipGroup
 
 class CatalogoFragment : Fragment(R.layout.fragment_catalogo) {
 
@@ -21,15 +22,16 @@ class CatalogoFragment : Fragment(R.layout.fragment_catalogo) {
         super.onViewCreated(view, savedInstanceState)
 
         val rvLibros = view.findViewById<RecyclerView>(R.id.rvLibros)
-        val btnVerPerfil = view.findViewById<View>(R.id.btnVerPerfil)
         val progressBar = view.findViewById<ProgressBar>(R.id.pbLoading)
         val searchView = view.findViewById<SearchView>(R.id.svLibros)
         val tvEmpty = view.findViewById<android.widget.TextView>(R.id.tvEmptyState)
+        val chipGroup = view.findViewById<ChipGroup>(R.id.cgCategories)
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (!query.isNullOrBlank()) {
                     tvEmpty.visibility = View.GONE
+                    chipGroup.clearCheck()
                     viewModel.buscarLibros(query)
                 }
                 return true
@@ -39,6 +41,23 @@ class CatalogoFragment : Fragment(R.layout.fragment_catalogo) {
                 return true
             }
         })
+
+        chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
+            val checkedId = checkedIds.firstOrNull()
+            if (checkedId != null) {
+                val query = when (checkedId) {
+                    R.id.chipMath -> "mathematics"
+                    R.id.chipProgramming -> "programming"
+                    R.id.chipAccounting -> "accounting"
+                    R.id.chipHistory -> "history"
+                    R.id.chipEducation -> "education"
+                    else -> "android"
+                }
+                searchView.setQuery("", false)
+                searchView.clearFocus()
+                viewModel.buscarLibros(query)
+            }
+        }
 
         adapter = LibroAdapter(emptyList()) { libroSeleccionado ->
             val bundle = Bundle().apply {
@@ -52,10 +71,6 @@ class CatalogoFragment : Fragment(R.layout.fragment_catalogo) {
 
         rvLibros.layoutManager = LinearLayoutManager(requireContext())
         rvLibros.adapter = adapter
-
-        btnVerPerfil.setOnClickListener {
-            findNavController().navigate(R.id.action_catalogo_to_perfil)
-        }
 
         viewModel.libros.observe(viewLifecycleOwner) { libros ->
             adapter.updateData(libros)

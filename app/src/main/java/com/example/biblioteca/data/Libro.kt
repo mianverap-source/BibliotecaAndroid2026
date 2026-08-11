@@ -22,5 +22,7 @@ data class Libro(
     val titulo: String,
     val autor: String,
     val usuarioId: Int? = null,
-    val portadaResId: Int? = null
+    val portadaResId: Int? = null,
+    val fechaPrestamo: Long = System.currentTimeMillis(),
+    val isDevuelto: Boolean = false
 )

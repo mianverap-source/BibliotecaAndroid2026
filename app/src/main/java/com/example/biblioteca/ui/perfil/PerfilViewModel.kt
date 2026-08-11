@@ -31,7 +31,7 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
                 _usuario.value = user
                 
                 if (user != null) {
-                    val libros = db.libroDao().getLibrosPorUsuario(user.id)
+                    val libros = db.libroDao().getLibrosActivosPorUsuario(user.id)
                     _librosPrestados.value = libros
                 }
             }
@@ -40,5 +40,24 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
 
     fun cerrarSesion() {
         sessionManager.clearSession()
+    }
+
+    fun actualizarFoto(uri: String) {
+        val email = sessionManager.getUserEmail() ?: return
+        viewModelScope.launch {
+            val user = usuarioDao.buscarPorCorreo(email)
+            if (user != null) {
+                val userActualizado = user.copy(fotoUri = uri)
+                usuarioDao.registrar(userActualizado)
+                _usuario.value = userActualizado
+            }
+        }
+    }
+
+    fun devolverLibro(libro: Libro) {
+        viewModelScope.launch {
+            db.libroDao().devolverLibro(libro.id)
+            cargarDatosUsuario()
+        }
     }
 }
