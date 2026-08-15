@@ -29,15 +29,20 @@ class DetalleLibroFragment : Fragment(R.layout.fragment_detalle_libro) {
         val tvTipoRecurso = view.findViewById<TextView>(R.id.tvTipoRecurso)
         val tvUbicacion = view.findViewById<TextView>(R.id.tvDetalleUbicacion)
         val tvCopias = view.findViewById<TextView>(R.id.tvDetalleCopias)
+        val tvCategoria = view.findViewById<TextView>(R.id.tvDetalleCategoria)
 
         // Obtener datos básicos del Bundle
         val workId = arguments?.getString("workId") ?: ""
         val titulo = arguments?.getString("titulo") ?: ""
         val autor = arguments?.getString("autor") ?: ""
         val coverUrl = arguments?.getString("coverUrl") ?: ""
+        val categoriaId = arguments?.getInt("categoriaId") ?: 1
+        val categoriaNombre = arguments?.getString("categoriaNombre") ?: "General"
 
         tvTitulo.text = titulo
         tvAutor.text = autor
+        tvCategoria.text = categoriaNombre
+        
         ivPortada.load(coverUrl) {
             placeholder(android.R.drawable.ic_menu_gallery)
             error(android.R.drawable.stat_notify_error)
@@ -72,7 +77,7 @@ class DetalleLibroFragment : Fragment(R.layout.fragment_detalle_libro) {
                 if (info.esDigital) {
                     Toast.makeText(requireContext(), "Iniciando descarga de: $titulo...", Toast.LENGTH_SHORT).show()
                 } else {
-                    viewModel.solicitarPrestamo(titulo, autor)
+                    viewModel.solicitarPrestamo(titulo, autor, categoriaId)
                 }
             }
         }

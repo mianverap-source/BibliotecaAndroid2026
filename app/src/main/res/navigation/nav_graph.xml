@@ -58,4 +58,16 @@
             app:popUpToInclusive="true" />
     </fragment>
 
+    <fragment
+        android:id="@+id/misPrestamosFragment"
+        android:name="com.example.biblioteca.ui.perfil.MisPrestamosFragment"
+        android:label="Mis Préstamos"
+        tools:layout="@layout/fragment_mis_prestamos" />
+
+    <fragment
+        android:id="@+id/historialFragment"
+        android:name="com.example.biblioteca.ui.perfil.HistorialFragment"
+        android:label="Historial"
+        tools:layout="@layout/fragment_historial" />
+
 </navigation>

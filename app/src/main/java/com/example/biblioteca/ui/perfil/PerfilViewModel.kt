@@ -5,35 +5,29 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.biblioteca.data.Libro
 import com.example.biblioteca.data.SessionManager
-import com.example.biblioteca.data.local.AppDatabase
+import com.example.biblioteca.data.local.DatabaseHelper
 import com.example.biblioteca.data.local.entities.Usuario
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class PerfilViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db = AppDatabase.getDatabase(application)
-    private val usuarioDao = db.usuarioDao()
+    private val dbHelper = DatabaseHelper(application)
     private val sessionManager = SessionManager(application)
 
     private val _usuario = MutableLiveData<Usuario?>()
     val usuario: LiveData<Usuario?> = _usuario
 
-    private val _librosPrestados = MutableLiveData<List<Libro>>()
-    val librosPrestados: LiveData<List<Libro>> = _librosPrestados
-
     fun cargarDatosUsuario() {
         val email = sessionManager.getUserEmail()
         if (email != null) {
             viewModelScope.launch {
-                val user = usuarioDao.buscarPorCorreo(email)
-                _usuario.value = user
-                
-                if (user != null) {
-                    val libros = db.libroDao().getLibrosActivosPorUsuario(user.id)
-                    _librosPrestados.value = libros
+                val user = withContext(Dispatchers.IO) {
+                    dbHelper.obtenerUsuarioPorCorreo(email)
                 }
+                _usuario.value = user
             }
         }
     }
@@ -45,19 +39,16 @@ class PerfilViewModel(application: Application) : AndroidViewModel(application) 
     fun actualizarFoto(uri: String) {
         val email = sessionManager.getUserEmail() ?: return
         viewModelScope.launch {
-            val user = usuarioDao.buscarPorCorreo(email)
+            val user = withContext(Dispatchers.IO) {
+                dbHelper.obtenerUsuarioPorCorreo(email)
+            }
             if (user != null) {
                 val userActualizado = user.copy(fotoUri = uri)
-                usuarioDao.registrar(userActualizado)
+                withContext(Dispatchers.IO) {
+                    dbHelper.actualizarUsuario(userActualizado)
+                }
                 _usuario.value = userActualizado
             }
-        }
-    }
-
-    fun devolverLibro(libro: Libro) {
-        viewModelScope.launch {
-            db.libroDao().devolverLibro(libro.id)
-            cargarDatosUsuario()
         }
     }
 }

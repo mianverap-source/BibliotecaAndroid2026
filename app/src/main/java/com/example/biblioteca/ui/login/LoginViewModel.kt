@@ -6,12 +6,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.biblioteca.data.SessionManager
-import com.example.biblioteca.data.local.AppDatabase
+import com.example.biblioteca.data.local.DatabaseHelper
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val usuarioDao = AppDatabase.getDatabase(application).usuarioDao()
+    private val dbHelper = DatabaseHelper(application)
     private val sessionManager = SessionManager(application)
 
     private val _loginResult = MutableLiveData<Boolean>()
@@ -27,7 +29,9 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         viewModelScope.launch {
-            val user = usuarioDao.login(usuario, password)
+            val user = withContext(Dispatchers.IO) {
+                dbHelper.login(usuario, password)
+            }
             if (user != null) {
                 sessionManager.saveUserEmail(user.correo)
                 _loginResult.value = true

@@ -1,7 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Base application theme (Modo Noche) -->
     <style name="Base.Theme.Biblioteca" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <!-- En modo noche usamos un azul oscuro pero visible -->
+        <item name="colorPrimary">#90CAF9</item>
+        <item name="colorSecondary">#64B5F6</item>
+        <item name="android:windowBackground">#121212</item>
+        <item name="android:statusBarColor">#0D47A1</item>
     </style>
 </resources>

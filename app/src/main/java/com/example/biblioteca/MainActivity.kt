@@ -15,9 +15,11 @@ import androidx.navigation.ui.setupWithNavController
 import coil.load
 import coil.transform.CircleCropTransformation
 import com.example.biblioteca.data.SessionManager
-import com.example.biblioteca.data.local.AppDatabase
+import com.example.biblioteca.data.local.DatabaseHelper
 import com.google.android.material.navigation.NavigationView
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -40,7 +42,7 @@ class MainActivity : AppCompatActivity() {
 
         // Configuramos los destinos de nivel superior
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.catalogoFragment, R.id.perfilFragment),
+            setOf(R.id.catalogoFragment, R.id.misPrestamosFragment, R.id.historialFragment, R.id.perfilFragment),
             drawerLayout
         )
 
@@ -97,7 +99,9 @@ class MainActivity : AppCompatActivity() {
         val ivFoto = headerView.findViewById<ImageView>(R.id.ivHeaderFoto)
 
         lifecycleScope.launch {
-            val user = AppDatabase.getDatabase(this@MainActivity).usuarioDao().buscarPorCorreo(email)
+            val user = withContext(Dispatchers.IO) {
+                DatabaseHelper(this@MainActivity).obtenerUsuarioPorCorreo(email)
+            }
             if (user != null) {
                 tvNombre.text = user.nombreCompleto
                 tvCorreo.text = user.correo

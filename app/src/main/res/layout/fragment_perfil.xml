@@ -120,28 +120,6 @@
                     android:layout_marginTop="8dp"
                     android:text="Año de ingreso: 2024" />
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="16dp"
-                    android:background="#E0E0E0" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Mis Préstamos"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="8dp" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvMisPrestamos"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false"
-                    tools:listitem="@layout/item_libro" />
-
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>

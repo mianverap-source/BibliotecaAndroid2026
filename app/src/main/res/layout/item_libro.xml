@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardElevation="4dp"
+    app:cardElevation="2dp"
     app:cardCornerRadius="12dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="8dp">
+        android:padding="12dp">
 
         <ImageView
             android:id="@+id/ivPortadaLibro"
-            android:layout_width="80dp"
-            android:layout_height="120dp"
+            android:layout_width="60dp"
+            android:layout_height="90dp"
             android:scaleType="centerCrop"
             android:src="@android:drawable/ic_menu_gallery"
             app:layout_constraintStart_toStartOf="parent"
@@ -28,22 +29,92 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:text="Título del Libro"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintStart_toEndOf="@id/ivPortadaLibro"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/layoutActions"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/tvAutorLibro"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
             android:text="Autor"
-            android:textSize="14sp"
+            android:textSize="13sp"
             app:layout_constraintStart_toStartOf="@id/tvTituloLibro"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/layoutActions"
             app:layout_constraintTop_toBottomOf="@id/tvTituloLibro" />
+
+        <TextView
+            android:id="@+id/tvCategoriaLibro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/search_background"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp"
+            android:text="Categoría"
+            android:textSize="10sp"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:layout_constraintStart_toStartOf="@id/tvTituloLibro"
+            app:layout_constraintTop_toBottomOf="@id/tvAutorLibro" />
+
+        <TextView
+            android:id="@+id/tvFechaLibro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Pedido el: 10/08/2026"
+            android:textSize="11sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:layout_constraintStart_toStartOf="@id/tvTituloLibro"
+            app:layout_constraintTop_toBottomOf="@id/tvCategoriaLibro" />
+
+        <TextView
+            android:id="@+id/tvAlertaLibro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Tienes 3 días para devolverlo"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="@color/error"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:layout_constraintStart_toStartOf="@id/tvTituloLibro"
+            app:layout_constraintTop_toBottomOf="@id/tvFechaLibro" />
+
+        <LinearLayout
+            android:id="@+id/layoutActions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <ImageButton
+                android:id="@+id/btnEditarPrestamo"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_edit"
+                app:tint="?attr/colorPrimary" />
+
+            <ImageButton
+                android:id="@+id/btnEliminarPrestamo"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_revert"
+                app:tint="@color/warning" />
+
+        </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDevolverLibro"
@@ -51,8 +122,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Devolver"
-            android:textSize="12sp"
+            android:textSize="11sp"
             android:visibility="gone"
+            tools:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 

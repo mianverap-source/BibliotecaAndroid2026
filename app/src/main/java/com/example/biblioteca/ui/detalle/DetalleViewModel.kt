@@ -7,16 +7,19 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.biblioteca.data.Libro
 import com.example.biblioteca.data.SessionManager
-import com.example.biblioteca.data.local.AppDatabase
+import com.example.biblioteca.data.local.DatabaseHelper
+import com.example.biblioteca.data.local.entities.Categoria
 import com.example.biblioteca.data.remote.RetrofitClient
 import com.example.biblioteca.data.remote.SimulatedLibraryInfo
 import com.example.biblioteca.data.remote.WorkDetailResponse
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.random.Random
 
 class DetalleViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db = AppDatabase.getDatabase(application)
+    private val dbHelper = DatabaseHelper(application)
     private val sessionManager = SessionManager(application)
 
     private val _detalle = MutableLiveData<WorkDetailResponse>()
@@ -24,6 +27,9 @@ class DetalleViewModel(application: Application) : AndroidViewModel(application)
 
     private val _simulatedInfo = MutableLiveData<SimulatedLibraryInfo>()
     val simulatedInfo: LiveData<SimulatedLibraryInfo> = _simulatedInfo
+
+    private val _categorias = MutableLiveData<List<Categoria>>()
+    val categorias: LiveData<List<Categoria>> = _categorias
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
@@ -41,6 +47,13 @@ class DetalleViewModel(application: Application) : AndroidViewModel(application)
                 val response = RetrofitClient.instance.getWorkDetail(workId)
                 _detalle.value = response
                 _simulatedInfo.value = generateSimulatedInfo(workId)
+                
+                // Cargar categorías de la base de datos
+                val cats = withContext(Dispatchers.IO) {
+                    dbHelper.obtenerCategorias()
+                }
+                _categorias.value = cats
+                
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = "Error al cargar el detalle: ${e.message}"
@@ -51,49 +64,49 @@ class DetalleViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private fun generateSimulatedInfo(workId: String): SimulatedLibraryInfo {
-        // Determinismo basado en el ID para que no cambie al rotar pantalla
         val seed = workId.hashCode().toLong()
         val random = Random(seed)
-        
         val esDigital = random.nextBoolean()
         return if (esDigital) {
             SimulatedLibraryInfo(esDigital = true)
         } else {
             val pisos = listOf("Piso 1", "Piso 2", "Piso 3")
-            val modulos = listOf("Módulo A", "Módulo B", "Módulo C", "Módulo D")
-            val estantes = (1..10).map { "Estante $it" }
-            
-            val totales = random.nextInt(3, 10)
-            val disponibles = random.nextInt(0, totales + 1)
-            
+            val modulos = listOf("Módulo A", "Módulo B", "Módulo C")
             SimulatedLibraryInfo(
                 esDigital = false,
-                ubicacion = "${pisos.random(random)}, ${modulos.random(random)}, ${estantes.random(random)}",
-                copiasTotales = totales,
-                copiasDisponibles = disponibles
+                ubicacion = "${pisos.random(random)}, ${modulos.random(random)}",
+                copiasTotales = random.nextInt(3, 8),
+                copiasDisponibles = random.nextInt(1, 4)
             )
         }
     }
 
-    fun solicitarPrestamo(titulo: String, autor: String) {
+    fun solicitarPrestamo(titulo: String, autor: String, categoriaId: Int) {
         val email = sessionManager.getUserEmail() ?: return
         
         viewModelScope.launch {
             try {
-                val usuario = db.usuarioDao().buscarPorCorreo(email)
-                if (usuario != null) {
-                    val yaPrestado = db.libroDao().buscarPrestamo(titulo, usuario.id)
-                    if (yaPrestado == null) {
+                val result = withContext(Dispatchers.IO) {
+                    val usuario = dbHelper.obtenerUsuarioPorCorreo(email)
+                    if (usuario != null) {
                         val nuevoLibro = Libro(
                             titulo = titulo,
                             autor = autor,
-                            usuarioId = usuario.id
+                            usuarioId = usuario.id,
+                            categoriaId = categoriaId,
+                            fechaPrestamo = System.currentTimeMillis(),
+                            isDevuelto = false
                         )
-                        db.libroDao().prestamo(nuevoLibro)
-                        _prestamoExitoso.value = true
+                        dbHelper.insertarPrestamo(nuevoLibro)
                     } else {
-                        _error.value = "Ya tienes este libro prestado"
+                        -1L
                     }
+                }
+                
+                if (result != -1L) {
+                    _prestamoExitoso.value = true
+                } else {
+                    _error.value = "Error al procesar el préstamo"
                 }
             } catch (e: Exception) {
                 _error.value = "Error en préstamo: ${e.message}"

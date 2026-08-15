@@ -105,6 +105,23 @@
                     android:text="Disponibilidad: 3 de 5 copias"
                     android:textSize="14sp" />
 
+                <TextView
+                    android:id="@+id/tvLabelCategoria"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Categoría Seleccionada:"
+                    android:textStyle="bold"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/tvDetalleCategoria"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="General"
+                    android:textSize="14sp" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

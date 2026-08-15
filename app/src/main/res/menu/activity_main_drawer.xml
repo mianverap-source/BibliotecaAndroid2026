@@ -9,6 +9,14 @@
             android:icon="@android:drawable/ic_menu_search"
             android:title="Catálogo" />
         <item
+            android:id="@+id/misPrestamosFragment"
+            android:icon="@android:drawable/ic_menu_agenda"
+            android:title="Mis Préstamos" />
+        <item
+            android:id="@+id/historialFragment"
+            android:icon="@android:drawable/ic_menu_recent_history"
+            android:title="Historial de Devolución" />
+        <item
             android:id="@+id/perfilFragment"
             android:icon="@android:drawable/ic_menu_myplaces"
             android:title="Mi Perfil" />

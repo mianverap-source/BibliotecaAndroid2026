@@ -21,6 +21,9 @@ class MisPrestamosViewModel(application: Application) : AndroidViewModel(applica
     private val _librosPrestados = MutableLiveData<List<Libro>>()
     val librosPrestados: LiveData<List<Libro>> = _librosPrestados
 
+    private val _historial = MutableLiveData<List<Libro>>()
+    val historial: LiveData<List<Libro>> = _historial
+
     private val _categorias = MutableLiveData<List<Categoria>>()
     val categorias: LiveData<List<Categoria>> = _categorias
 
@@ -31,10 +34,15 @@ class MisPrestamosViewModel(application: Application) : AndroidViewModel(applica
                 dbHelper.obtenerUsuarioPorCorreo(email)
             }
             if (user != null) {
-                val libros = withContext(Dispatchers.IO) {
+                val activos = withContext(Dispatchers.IO) {
                     dbHelper.obtenerPrestamosActivos(user.id)
                 }
-                _librosPrestados.value = libros
+                _librosPrestados.value = activos
+
+                val hist = withContext(Dispatchers.IO) {
+                    dbHelper.obtenerHistorialCompleto(user.id)
+                }
+                _historial.value = hist
             }
 
             val cats = withContext(Dispatchers.IO) {
@@ -53,10 +61,10 @@ class MisPrestamosViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    fun editarPrestamo(libroId: Int, categoriaId: Int) {
+    fun actualizarComentario(libroId: Int, comentario: String) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                dbHelper.actualizarPrestamo(libroId, categoriaId)
+                dbHelper.actualizarPrestamo(libroId, comentario)
             }
             cargarPrestamos()
         }

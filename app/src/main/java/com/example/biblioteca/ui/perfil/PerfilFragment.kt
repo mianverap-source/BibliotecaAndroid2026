@@ -1,11 +1,15 @@
 package com.example.biblioteca.ui.perfil
 
-import android.os.Bundle
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.ImageView
+import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -15,6 +19,8 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import coil.transform.CircleCropTransformation
 import com.example.biblioteca.R
+import com.example.biblioteca.data.Libro
+import com.example.biblioteca.data.local.entities.Categoria
 
 class PerfilFragment : Fragment(R.layout.fragment_perfil) {
 
@@ -22,14 +28,11 @@ class PerfilFragment : Fragment(R.layout.fragment_perfil) {
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
-            // Intentamos obtener permisos persistentes si es posible
             try {
                 requireContext().contentResolver.takePersistableUriPermission(
                     it, Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
-            } catch (e: Exception) {
-                // Manejar error de permisos si no es un DocumentProvider
-            }
+            } catch (e: Exception) {}
             viewModel.actualizarFoto(it.toString())
         }
     }
@@ -47,13 +50,6 @@ class PerfilFragment : Fragment(R.layout.fragment_perfil) {
         val tvDireccion = view.findViewById<TextView>(R.id.tvDireccionPerfil)
         val tvAnio = view.findViewById<TextView>(R.id.tvAnioPerfil)
         val btnCerrarSesion = view.findViewById<View>(R.id.btnCerrarSesion)
-        val rvPrestamos = view.findViewById<RecyclerView>(R.id.rvMisPrestamos)
-
-        val adapter = PrestamoAdapter(emptyList()) { libro ->
-            viewModel.devolverLibro(libro)
-        }
-        rvPrestamos.layoutManager = LinearLayoutManager(requireContext())
-        rvPrestamos.adapter = adapter
 
         fabFoto.setOnClickListener {
             pickImage.launch("image/*")
@@ -68,17 +64,12 @@ class PerfilFragment : Fragment(R.layout.fragment_perfil) {
                 tvTelefono.text = "Celular: ${user.telefono}"
                 tvDireccion.text = "Dirección: ${user.direccion}"
                 tvAnio.text = "Año de ingreso: ${user.anioIngreso}"
-
                 if (user.fotoUri != null) {
                     ivFoto.load(user.fotoUri) {
                         transformations(CircleCropTransformation())
                     }
                 }
             }
-        }
-
-        viewModel.librosPrestados.observe(viewLifecycleOwner) { libros ->
-            adapter.updateData(libros)
         }
 
         btnCerrarSesion.setOnClickListener {

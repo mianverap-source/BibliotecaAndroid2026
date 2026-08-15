@@ -2,7 +2,10 @@ package com.example.biblioteca.ui.catalogo
 
 import android.os.Bundle
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.ProgressBar
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
@@ -11,7 +14,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.biblioteca.R
-import com.google.android.material.chip.ChipGroup
+import com.example.biblioteca.data.local.entities.Categoria
 
 class CatalogoFragment : Fragment(R.layout.fragment_catalogo) {
 
@@ -25,13 +28,12 @@ class CatalogoFragment : Fragment(R.layout.fragment_catalogo) {
         val progressBar = view.findViewById<ProgressBar>(R.id.pbLoading)
         val searchView = view.findViewById<SearchView>(R.id.svLibros)
         val tvEmpty = view.findViewById<android.widget.TextView>(R.id.tvEmptyState)
-        val chipGroup = view.findViewById<ChipGroup>(R.id.cgCategories)
+        val spCategories = view.findViewById<Spinner>(R.id.spCatalogoCategorias)
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (!query.isNullOrBlank()) {
                     tvEmpty.visibility = View.GONE
-                    chipGroup.clearCheck()
                     viewModel.buscarLibros(query)
                 }
                 return true
@@ -42,21 +44,21 @@ class CatalogoFragment : Fragment(R.layout.fragment_catalogo) {
             }
         })
 
-        chipGroup.setOnCheckedStateChangeListener { group, checkedIds ->
-            val checkedId = checkedIds.firstOrNull()
-            if (checkedId != null) {
-                val query = when (checkedId) {
-                    R.id.chipMath -> "mathematics"
-                    R.id.chipProgramming -> "programming"
-                    R.id.chipAccounting -> "accounting"
-                    R.id.chipHistory -> "history"
-                    R.id.chipEducation -> "education"
-                    else -> "android"
+        viewModel.categorias.observe(viewLifecycleOwner) { cats ->
+            val spinnerAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, cats)
+            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spCategories.adapter = spinnerAdapter
+        }
+
+        spCategories.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val cat = parent?.getItemAtPosition(position) as? Categoria
+                cat?.let {
+                    searchView.setQuery("", false)
+                    viewModel.buscarLibros(it.nombre.lowercase())
                 }
-                searchView.setQuery("", false)
-                searchView.clearFocus()
-                viewModel.buscarLibros(query)
             }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
         adapter = LibroAdapter(emptyList()) { libroSeleccionado ->
@@ -65,6 +67,12 @@ class CatalogoFragment : Fragment(R.layout.fragment_catalogo) {
                 putString("titulo", libroSeleccionado.title)
                 putString("autor", libroSeleccionado.authorName?.firstOrNull())
                 putString("coverUrl", libroSeleccionado.getCoverUrl())
+                // Pasar la categoría actual
+                val currentCat = spCategories.selectedItem as? Categoria
+                currentCat?.let {
+                    putInt("categoriaId", it.id)
+                    putString("categoriaNombre", it.nombre)
+                }
             }
             findNavController().navigate(R.id.action_catalogo_to_detalle, bundle)
         }
@@ -74,11 +82,7 @@ class CatalogoFragment : Fragment(R.layout.fragment_catalogo) {
 
         viewModel.libros.observe(viewLifecycleOwner) { libros ->
             adapter.updateData(libros)
-            if (libros.isEmpty() && viewModel.isLoading.value == false) {
-                tvEmpty.visibility = View.VISIBLE
-            } else {
-                tvEmpty.visibility = View.GONE
-            }
+            tvEmpty.visibility = if (libros.isEmpty() && viewModel.isLoading.value == false) View.VISIBLE else View.GONE
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
@@ -94,6 +98,7 @@ class CatalogoFragment : Fragment(R.layout.fragment_catalogo) {
             }
         }
 
+        viewModel.cargarCategorias()
         viewModel.buscarLibros()
     }
 }

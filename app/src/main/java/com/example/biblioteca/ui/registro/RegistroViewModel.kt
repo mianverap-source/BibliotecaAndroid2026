@@ -5,13 +5,15 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.biblioteca.data.local.AppDatabase
+import com.example.biblioteca.data.local.DatabaseHelper
 import com.example.biblioteca.data.local.entities.Usuario
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class RegistroViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val usuarioDao = AppDatabase.getDatabase(application).usuarioDao()
+    private val dbHelper = DatabaseHelper(application)
 
     private val _registroExitoso = MutableLiveData<Boolean>()
     val registroExitoso: LiveData<Boolean> = _registroExitoso
@@ -59,22 +61,31 @@ class RegistroViewModel(application: Application) : AndroidViewModel(application
 
         viewModelScope.launch {
             try {
-                val existe = usuarioDao.buscarPorCorreoOCedula(correo, cedula)
-                if (existe != null) {
-                    _error.value = "El correo o la cédula ya están registrados"
-                } else {
-                    val nuevoUsuario = Usuario(
-                        nombreCompleto = nombre,
-                        cedula = cedula,
-                        institucion = institucion,
-                        telefono = celular,
-                        direccion = direccion,
-                        anioIngreso = anioInt,
-                        correo = correo,
-                        password = password
-                    )
-                    usuarioDao.registrar(nuevoUsuario)
+                val result = withContext(Dispatchers.IO) {
+                    val existe = dbHelper.obtenerUsuarioPorCorreo(correo)
+                    if (existe != null) {
+                        null
+                    } else {
+                        val nuevoUsuario = Usuario(
+                            nombreCompleto = nombre,
+                            cedula = cedula,
+                            institucion = institucion,
+                            telefono = celular,
+                            direccion = direccion,
+                            anioIngreso = anioInt,
+                            correo = correo,
+                            password = password
+                        )
+                        dbHelper.insertarUsuario(nuevoUsuario)
+                    }
+                }
+
+                if (result == null) {
+                    _error.value = "El correo ya está registrado"
+                } else if (result != -1L) {
                     _registroExitoso.value = true
+                } else {
+                    _error.value = "Error al insertar en la base de datos"
                 }
             } catch (e: Exception) {
                 _error.value = "Error al registrar: ${e.message}"
